@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import UserNotifications
+
 struct DictionaryEntry: Codable, Identifiable {
     var id = UUID() // Add an identifier for the list
     let term: String
@@ -42,6 +44,18 @@ struct ContentView: View {
                         HStack(alignment: .bottom){
                             Button(action: {
                                 savedWords.append(DictionaryEntry(term: randomWord, definition: randomdefinition))
+                                
+                                
+                                
+                                UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { success, error in
+                                    if success {
+                                        print("All set!")
+                                    } else if let error = error {
+                                        print(error.localizedDescription)
+                                    }
+                                }
+                                
+                                events(title: randomWord, subTitle: randomdefinition)
                             }, label: {
                                 Image(systemName: "heart")
                                     .padding()
@@ -98,6 +112,20 @@ struct ContentView: View {
 
         })
     }
+    func events(title:String,subTitle:String){
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.subtitle = subTitle
+        content.sound = UNNotificationSound.default
+
+        // show this notification five seconds from now
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 10000, repeats: false)
+        // choose a random identifier
+        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+        // add our notification request
+        UNUserNotificationCenter.current().add(request)
+    }
+    
     func deleteWord(at offsets: IndexSet) {
         savedWords.remove(atOffsets: offsets)
     }
